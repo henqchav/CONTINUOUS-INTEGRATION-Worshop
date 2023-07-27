@@ -1,4 +1,5 @@
 from dining_exp_manager import DiningExperienceManager
+from unittest.mock import patch
 import pytest
 
 @pytest.fixture
@@ -27,12 +28,12 @@ def test_calculate_cost_no_discount(dem):
 def test_calculate_cost_10_percent_discount(dem):
     order = {"Chinese Food": 6, "Pastries": 3}
     expected_cost = (10 * 6 + 8 * 3) * 0.9
-    assert dem.calculate_cost(order) == round(expected_cost,2)
+    assert dem.calculate_cost(order) == round(expected_cost, 2)
 
 def test_calculate_cost_20_percent_discount(dem):
     order = {"Chinese Food": 11, "Pastries": 4}
     expected_cost = (10 * 11 + 8 * 4) * 0.8
-    assert dem.calculate_cost(order) == round(expected_cost,2)
+    assert dem.calculate_cost(order) == round(expected_cost, 2)
 
 def test_apply_special_offers_no_discount(dem):
     assert dem.apply_special_offers(30) == 30
@@ -63,10 +64,12 @@ def test_manage_order_cancel(dem, monkeypatch):
     monkeypatch.setattr('builtins.input', lambda _: 'finish')
     assert dem.manage_order() == -1
 
-def test_manage_order_confirm(dem, monkeypatch):
-    monkeypatch.setattr('builtins.input', lambda x: 'y' if x == 'Confirm the order? (Y/N): ' else 'Chinese Food\n2\nfinish')
-    total_cost = dem.manage_order()
+def test_manage_order_confirm(dem):
+    # Utilizamos patch para simular las entradas del usuario y finalizar el pedido rápidamente
+    with patch('builtins.input', side_effect=['Chinese Food', '2', 'finish', 'y']):
+        total_cost = dem.manage_order()
     assert total_cost > 0
 
-if __name__ == "__main__":
-    pytest.main(["test_dining_exp_manager.py"])
+    # Restauramos el flujo normal de entrada del usuario
+    with patch('builtins.input', input):
+        pass
